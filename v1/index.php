@@ -35,6 +35,7 @@ function get_beers($where = NULL) {
 		echo $query;
 		// some form of error
 	}
+	$beers = array();
 	while ($row = $result->fetch_assoc()) $beers[] = $row;
 	return $beers;
 }
@@ -47,6 +48,7 @@ function get_taps($where = NULL) {
 		echo $query;
 		// some form of error
 	}
+	$taps = array();
 	while ($tap = $result->fetch_assoc()) {
 		$taps[] = array(
 				"id"	=> $tap['tapid'],
@@ -113,6 +115,7 @@ $app->group('/style', function() use ($app) {
 			echo $query;
 			// some form of error
 			}
+			$styles = array();
 			while ($row = $result->fetch_assoc()) $styles[] = $row;
 			echo json_encode($styles);
 			});
