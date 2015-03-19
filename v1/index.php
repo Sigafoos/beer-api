@@ -42,7 +42,7 @@ function get_beers($where = NULL) {
 
 function get_taps($where = NULL) {
 	global $db, $dbprefix;
-	$query = "SELECT " . $dbprefix . "taps.id AS tapid, " . $dbprefix . "taps.tap, " . $dbprefix . "beers.id, " . $dbprefix . "beers.beer, abv, " . $dbprefix . "beer_styles.style, description FROM " . $dbprefix . "taps INNER JOIN " . $dbprefix . "beers ON " . $dbprefix . "taps.beer=" . $dbprefix . "beers.id INNER JOIN " . $dbprefix . "beer_styles ON " . $dbprefix . "beers.style=" . $dbprefix . "beer_styles.id " . $where . " ORDER BY " . $dbprefix . "taps.id";
+	$query = "SELECT " . $dbprefix . "taps.id AS tapid, " . $dbprefix . "taps.tap, " . $dbprefix . "taps.description AS tapdescription, " . $dbprefix . "beers.id, " . $dbprefix . "beers.beer, abv, " . $dbprefix . "beer_styles.style, " . $dbprefix . "beers.description FROM " . $dbprefix . "taps INNER JOIN " . $dbprefix . "beers ON " . $dbprefix . "taps.beer=" . $dbprefix . "beers.id INNER JOIN " . $dbprefix . "beer_styles ON " . $dbprefix . "beers.style=" . $dbprefix . "beer_styles.id " . $where . " ORDER BY " . $dbprefix . "taps.id";
 	if (!($result = $db->query($query))) {
 		echo "error";
 		echo $query;
@@ -51,9 +51,10 @@ function get_taps($where = NULL) {
 	$taps = array();
 	while ($tap = $result->fetch_assoc()) {
 		$taps[] = array(
-				"id"	=> $tap['tapid'],
-				"tap"	=> $tap['tap'],
-				"beer"	=> array(
+				"id"		=> $tap['tapid'],
+				"tap"		=> $tap['tap'],
+				"description"	=> $tap['tapdescription'],
+				"beer"		=> array(
 					"id"		=> $tap['id'],
 					"beer"		=> $tap['beer'],
 					"abv"		=> $tap['abv'],
