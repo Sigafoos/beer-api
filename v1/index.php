@@ -27,22 +27,49 @@ $app->configureMode('production', function () use ($app) {
 /* 
    API functions
    */
+function get_beers($where = NULL) {
+	global $db, $dbprefix;
+	$query = "SELECT " . $dbprefix . "beers.id, beer, abv, " . $dbprefix . "beer_styles.style, description FROM " . $dbprefix . "beers INNER JOIN " . $dbprefix . "beer_styles ON " . $dbprefix . "beers.style=" . $dbprefix . "beer_styles.id " . $where;
+	if (!($result = $db->query($query))) {
+		echo "error";
+		echo $query;
+		// some form of error
+	}
+	while ($row = $result->fetch_assoc()) $beers[] = $row;
+	return $beers;
+}
+
+function get_taps($where = NULL) {
+	global $db, $dbprefix;
+	$query = "SELECT " . $dbprefix . "taps.id AS tapid, " . $dbprefix . "taps.tap, " . $dbprefix . "beers.id, " . $dbprefix . "beers.beer, abv, " . $dbprefix . "beer_styles.style, description FROM " . $dbprefix . "taps INNER JOIN " . $dbprefix . "beers ON " . $dbprefix . "taps.beer=" . $dbprefix . "beers.id INNER JOIN " . $dbprefix . "beer_styles ON " . $dbprefix . "beers.style=" . $dbprefix . "beer_styles.id " . $where . " ORDER BY " . $dbprefix . "taps.id";
+	if (!($result = $db->query($query))) {
+		echo "error";
+		echo $query;
+		// some form of error
+	}
+	while ($row = $result->fetch_assoc()) $taps[] = $row;
+	return $taps;
+}
 
 // dealing with list of beers we have made
 $app->group('/beer', function() use ($app) {
 		// all active and non-archived beers
 		$app->get('', function() {
-			echo "List of all beers";
+			$beers = get_beers("WHERE active=1");
+			echo json_encode($beers);
 			});
 
 		// all beers, including archived
 		$app->get('/all', function() {
-			echo "old beer too";
+			$beers = get_beers();
+			echo json_encode($beers);
 			});
 
 		// detail of specific beer
 		$app->get('/:id', function($id) {
-			echo $id;
+			global $dbprefix;
+			$beers = get_beers("WHERE " . $dbprefix . "beers.id=" . $id);
+			echo json_encode($beers);
 			});
 		});
 
@@ -50,21 +77,41 @@ $app->group('/beer', function() use ($app) {
 $app->group('/ontap', function() use ($app) {
 		// what's currently on tap
 		$app->get('', function() {
-			echo "1-10 (and cask??)";
-			});
-
-		// what's on cask
-		$app->get('/cask', function() {
-			echo "what's on the cask";
+			$taps = get_taps();
+			echo json_encode($taps);
 			});
 
 		// what's on a specific tap
 		$app->get('/:id', function($id) {
-			echo "what's on tap " . $id;
+			global $dbprefix;
+			$taps = get_taps("WHERE " . $dbprefix . "taps.id=" . $id);
+			echo json_encode($taps);
 			});
 
 		});
 
+// style-specific information
+$app->group('/style', function() use ($app) {
+		// style list
+		$app->get('', function() {
+			global $db, $dbprefix;
+			$query = "SELECT id, style FROM " . $dbprefix . "beer_styles ORDER BY id";
+			if (!($result = $db->query($query))) {
+			echo "error";
+			echo $query;
+			// some form of error
+			}
+			while ($row = $result->fetch_assoc()) $styles[] = $row;
+			echo json_encode($styles);
+			});
+
+		// all beers with a style
+		$app->get('/:id', function($id) {
+			global $dbprefix;
+			$beers = get_beers("WHERE " . $dbprefix . "beer_styles.id=" . $id);
+			echo json_encode($beers);
+			});
+		});
 
 $app->run();
 
