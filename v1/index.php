@@ -47,7 +47,19 @@ function get_taps($where = NULL) {
 		echo $query;
 		// some form of error
 	}
-	while ($row = $result->fetch_assoc()) $taps[] = $row;
+	while ($tap = $result->fetch_assoc()) {
+		$taps[] = array(
+				"id"	=> $tap['tapid'],
+				"tap"	=> $tap['tap'],
+				"beer"	=> array(
+					"id"		=> $tap['id'],
+					"beer"		=> $tap['beer'],
+					"abv"		=> $tap['abv'],
+					"style"		=> $tap['style'],
+					"description"	=> $tap['description']
+					)
+			       );
+	}
 	return $taps;
 }
 
