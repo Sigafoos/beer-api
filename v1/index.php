@@ -9,7 +9,7 @@ $app = new \Slim\Slim(array(
 $app->setName("CBW beer API");
 $app->response->headers->set('Content-Type', 'application/json');
 $app->response->headers->set('Access-Control-Allow-Origin', '*');
-$app->response->headers->set("Access-Control-Allow-Methods: GET");
+$app->response->headers->set("Access-Control-Allow-Methods: GET, POST, PUT");
 
 // if it's development
 $app->configureMode('development', function () use ($app) {
