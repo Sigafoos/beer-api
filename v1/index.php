@@ -85,9 +85,42 @@ $app->group('/beer', function() use ($app) {
 
 		// detail of specific beer
 		$app->get('/:id', function($id) {
+			if (!is_numeric($id)) {
+				$app->status(400);
+				$app->stop();
+				}
 			global $dbprefix;
 			$beers = get_beers("WHERE " . $dbprefix . "beers.id=" . $id);
 			echo json_encode($beers);
+			});
+
+		$app->put('/:id', function($id) use($app) {
+			global $db, $dbprefix;
+			$key = $app->request->headers->get('apikey');
+			if (!$key) {
+				$app->status(400);
+				$app->stop();
+			}
+			$query = "SELECT user FROM " . $dbprefix . "apikeys WHERE apikey='" . addslashes($key) . "'";
+			if (!($result = $db->query($query))) {
+				$app->status(500);
+				$app->stop();
+			} else if (!$result->fetch_assoc()) {
+				$app->status(400);
+				$app->stop();
+			}
+
+			// this doesn't support changing the style
+			if ($app->request->params("beer")) $changes[] = "beer='" . addslashes($app->request->params("beer")) . "'";
+			if ($app->request->params("abv")) $changes[] = "abv='" . addslashes($app->request->params("abv")) . "'";
+			if ($app->request->params("description")) $changes[] = "description='" . addslashes($app->request->params("description")) . "'";
+			$query = "UPDATE " . $dbprefix . "beers SET " . implode(",",$changes) . " WHERE id=" . $id;
+			if (!($result = $db->query($query))) {
+				$app->status(500);
+				$app->stop();
+			}
+			echo json_encode(array("status"=>"success"));
+
 			});
 		});
 
