@@ -21,5 +21,10 @@ $query = "CREATE TABLE IF NOT EXISTS " . $dbprefix . "taps (id int auto_incremen
 if (!($result = $db->query($query))) die("Fatal error creating table " . $dbprefix . "taps: #" . $db->errno . ": " . $db->error);
 echo "Tap table created.\n";
 
+// api keys / authorized users
+$query = "CREATE TABLE IF NOT EXISTS " . $dbprefix . "apikeys (apikey varchar(32) primary key, user varchar(50) not null)";
+if (!($result = $db->query($query))) die("Fatal error creating table " . $dbprefix . "apikeys: #" . $db->errno . ": " . $db->error);
+echo "Tap table created.\n";
+
 echo "\nYou're done! Delete this file now.";
 echo "</pre>";
