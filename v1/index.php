@@ -7,9 +7,10 @@ $app = new \Slim\Slim(array(
 			'mode'		=> 'development'
 			));
 $app->setName("CBW beer API");
-$app->response->headers->set('Content-Type', 'application/json');
-$app->response->headers->set('Access-Control-Allow-Origin', '*');
-$app->response->headers->set("Access-Control-Allow-Methods: GET, POST, PUT");
+$app->response->headers->set("Content-Type", "application/json");
+$app->response->headers->set("Access-Control-Allow-Origin", "*");
+$app->response->headers->set("Access-Control-Allow-Methods","GET,POST,PUT,OPTIONS");
+$app->response->headers->set("Access-Control-Allow-Headers", "apikey, Content-Type");
 
 // if it's development
 $app->configureMode('development', function () use ($app) {
@@ -27,6 +28,13 @@ $app->configureMode('production', function () use ($app) {
 				));
 		});
 
+// catch-all OPTIONS 
+$app->options('/(:x+)', function() use ($app) {
+		//$app->response->headers->set('Access-Control-Allow-Origin', '*');
+		//$app->response->headers->set("Access-Control-Allow-Methods: GET, POST, PUT, OPTIONS");
+		//$app->response->headers->set('Access-Control-Allow-Headers', 'apikey');
+		$app->response->setStatus(200);
+		});
 /* 
    API functions
    */
@@ -110,17 +118,19 @@ $app->group('/beer', function() use ($app) {
 				$app->stop();
 			}
 
+			$changes = array();
+			$params = json_decode($app->request->getBody());
 			// this doesn't support changing the style
-			if ($app->request->params("beer")) $changes[] = "beer='" . addslashes($app->request->params("beer")) . "'";
-			if ($app->request->params("abv")) $changes[] = "abv='" . addslashes($app->request->params("abv")) . "'";
-			if ($app->request->params("description")) $changes[] = "description='" . addslashes($app->request->params("description")) . "'";
+			if ($params->beer) $changes[] = "beer='" . addslashes($params->beer) . "'";
+			if ($params->abv) $changes[] = "abv='" . addslashes($params->abv) . "'";
+			if ($params->description) $changes[] = "description='" . addslashes($params->description) . "'";
+
 			$query = "UPDATE " . $dbprefix . "beers SET " . implode(",",$changes) . " WHERE id=" . $id;
 			if (!($result = $db->query($query))) {
 				$app->status(500);
 				$app->stop();
 			}
 			echo json_encode(array("status"=>"success"));
-
 			});
 		});
 
@@ -138,7 +148,6 @@ $app->group('/ontap', function() use ($app) {
 			$taps = get_taps("WHERE " . $dbprefix . "taps.id=" . $id);
 			echo json_encode($taps);
 			});
-
 		});
 
 // style-specific information
