@@ -120,12 +120,11 @@ $app->group('/beers', function() use ($app) {
 
 			$changes = array();
 			$params = json_decode($app->request->getBody());
-			// this doesn't support changing the style
-			if ($params->beer) $changes[] = "beer='" . addslashes($params->beer) . "'";
-			if ($params->abv) $changes[] = "abv='" . addslashes($params->abv) . "'";
-			if ($params->description) $changes[] = "description='" . addslashes($params->description) . "'";
 
-			$query = "UPDATE " . $dbprefix . "beers SET " . implode(",",$changes) . " WHERE id=" . $id;
+			// doesn't support changing style
+			$query = "UPDATE " . $dbprefix . "beers SET beer='" . addslashes($params->beer) . ", abv='" . addslashes($params->abv) . "', description=";
+			$query .= ($params->description) ? "'" . addslashes($params->description) . "'" : "NULL";
+			$query .= " WHERE id=" . $id;
 			if (!($result = $db->query($query))) {
 				$app->status(500);
 				$app->stop();
