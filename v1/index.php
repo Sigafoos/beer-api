@@ -78,7 +78,7 @@ function get_taps($where = NULL) {
 }
 
 // dealing with list of beers we have made
-$app->group('/beer', function() use ($app) {
+$app->group('/beers', function() use ($app) {
 		// all active and non-archived beers
 		$app->get('', function() {
 			$beers = get_beers("WHERE active=1");
@@ -135,7 +135,7 @@ $app->group('/beer', function() use ($app) {
 		});
 
 // what we have on tap
-$app->group('/ontap', function() use ($app) {
+$app->group('/taps', function() use ($app) {
 		// what's currently on tap
 		$app->get('', function() {
 			$taps = get_taps();
@@ -151,7 +151,7 @@ $app->group('/ontap', function() use ($app) {
 		});
 
 // style-specific information
-$app->group('/style', function() use ($app) {
+$app->group('/styles', function() use ($app) {
 		// style list
 		$app->get('', function() {
 			global $db, $dbprefix;
