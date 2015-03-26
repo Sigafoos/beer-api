@@ -118,7 +118,6 @@ $app->group('/beers', function() use ($app) {
 				$app->stop();
 			}
 
-			$changes = array();
 			$params = json_decode($app->request->getBody());
 
 			// doesn't support changing style
@@ -129,7 +128,6 @@ $app->group('/beers', function() use ($app) {
 				$app->status(500);
 				$app->stop();
 			}
-			echo json_encode(array("status"=>"success"));
 			});
 		});
 
@@ -146,6 +144,35 @@ $app->group('/taps', function() use ($app) {
 			global $dbprefix;
 			$taps = get_taps("WHERE " . $dbprefix . "taps.id=" . $id);
 			echo json_encode($taps);
+			});
+
+		// right now you can ONLY change the beer
+		$app->put('/:id', function($id) use($app) {
+			global $db, $dbprefix;
+			$key = $app->request->headers->get('apikey');
+			if (!$key) {
+				$app->status(400);
+				$app->stop();
+			}
+			$query = "SELECT user FROM " . $dbprefix . "apikeys WHERE apikey='" . addslashes($key) . "'";
+			if (!($result = $db->query($query))) {
+				$app->status(500);
+				$app->stop();
+			} else if (!$result->fetch_assoc()) {
+				$app->status(400);
+				$app->stop();
+			}
+
+			$params = json_decode($app->request->getBody());
+
+			$query = "UPDATE " . $dbprefix . "taps SET beer=";
+			$query .= ($params->beer) ? $params->beer->id : "NULL";
+			$query .= " WHERE id=" . $id;
+			if (!($result = $db->query($query))) {
+				$app->status(500);
+				$app->stop();
+			}
+			//echo json_encode(array("status"=>"success"));
 			});
 		});
 
