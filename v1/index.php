@@ -50,13 +50,13 @@ function get_beers($where = NULL) {
 	while ($beer = $result->fetch_assoc()) {
 		$beers[] = array(
 				"id"		=> $beer['id'],
-				"beer"		=> $beer['beer'],
-				"abv"		=> $beer['abv'],
+				"beer"		=> stripslashes($beer['beer']),
+				"abv"		=> stripslashes($beer['abv']),
 				"style"		=> array(
 					"id"		=> $beer['styleid'],
-					"style"		=> $beer['style']
+					"style"		=> stripslashes($beer['style'])
 					),
-				"description"	=> $beer['description'],
+				"description"	=> stripslashes($beer['description']),
 				"active"	=> $beer['active']
 				);
 	}
@@ -75,17 +75,17 @@ function get_taps($where = NULL) {
 	while ($tap = $result->fetch_assoc()) {
 		$taps[] = array(
 				"id"		=> $tap['tapid'],
-				"tap"		=> $tap['tap'],
-				"description"	=> $tap['tapdescription'],
+				"tap"		=> stripslashes($tap['tap']),
+				"description"	=> stripslashes($tap['tapdescription']),
 				"beer"		=> array(
 					"id"		=> $tap['id'],
-					"beer"		=> $tap['beer'],
-					"abv"		=> $tap['abv'],
+					"beer"		=> stripslashes($tap['beer']),
+					"abv"		=> stripslashes($tap['abv']),
 					"style"		=> array(
 						"id"		=> $tap['styleid'],
-						"style"		=> $tap['style']
+						"style"		=> stripslashes($tap['style'])
 						),
-					"description"	=> $tap['description'],
+					"description"	=> stripslashes($tap['description']),
 					"active"	=> $tap['active']
 					)
 			       );
@@ -260,7 +260,10 @@ $app->group('/styles', function() use ($app) {
 			// some form of error
 			}
 			$styles = array();
-			while ($row = $result->fetch_assoc()) $styles[] = $row;
+			while ($row = $result->fetch_assoc()) $styles[] = array(
+				"id"		=> $row['style'],
+				"style"		=> stripslashes($row['style'])
+				);
 			echo json_encode($styles);
 			});
 
