@@ -159,6 +159,48 @@ $app->group('/beers', function() use ($app) {
 			}
 			echo json_encode($beer);
 			});
+
+		$app->post('',function() use ($app) {
+			global $db, $dbprefix;
+			$key = $app->request->headers->get('apikey');
+			if (!$key) {
+				$app->status(400);
+				$app->stop();
+			}
+			$query = "SELECT user FROM " . $dbprefix . "apikeys WHERE apikey='" . addslashes($key) . "'";
+			if (!($result = $db->query($query))) {
+				$app->status(500);
+				$app->stop();
+			} else if (!$result->fetch_assoc()) {
+				$app->status(400);
+				$app->stop();
+			}
+
+			$params = json_decode($app->request->getBody());
+			$beer = array(
+				"beer"		=> addslashes($params->beer),
+				"abv"		=> addslashes($params->abv),
+				"style"		=> $params->style->id,
+				"description"	=> addslashes($params->description),
+				"active"	=> $params->active,
+				);
+
+			$query = "INSERT INTO " . $dbprefix . "beers(beer, abv, style, description, active) VALUES('" . $beer['beer'] . "', '" . $beer['abv'] . "', " . $beer['style'] . ",";
+			$query .= ($beer['description']) ? "'" . $beer['description'] . "'" : "NULL";
+			$query .= ", " . $beer['active'] . ")";
+			if (!$db->query($query)) {
+			$app->status(500);
+			$app->stop();
+			}
+
+			$id = $db->insert_id;
+			if (!$id) {
+				$app->status(500);
+				$app->stop();
+			}
+			$beer['id'] = $id;
+			echo json_encode($beer);
+				});
 		});
 
 // what we have on tap
@@ -246,7 +288,7 @@ $app->group('/styles', function() use ($app) {
 			}
 
 			$params = json_decode($app->request->getBody());
-			echo json_encode(array("something"=>"okay?"));
+			echo json_encode(array("params"=>$params));
 			/*
 			$query = "INSERT INTO " . $dbprefix . "beer_styles(style) VALUES('" . addslashes($params->style) . "')";
 			if (!$db->query($query)) {
