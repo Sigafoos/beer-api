@@ -189,6 +189,7 @@ $app->group('/beers', function() use ($app) {
 			$query = "INSERT INTO " . $dbprefix . "beers(beer, abv, style, description, active) VALUES('" . $beer['beer'] . "', '" . $beer['abv'] . "', " . $beer['style'] . ",";
 			$query .= ($beer['description']) ? "'" . $beer['description'] . "'" : "NULL";
 			$query .= ", " . $beer['active'] . ")";
+			echo json_encode(array("query"=>$query));
 			if (!$db->query($query)) {
 			$app->status(500);
 			$app->stop();
@@ -262,7 +263,7 @@ $app->group('/styles', function() use ($app) {
 			}
 			$styles = array();
 			while ($row = $result->fetch_assoc()) $styles[] = array(
-				"id"		=> $row['style'],
+				"id"		=> $row['id'],
 				"style"		=> stripslashes($row['style'])
 				);
 			echo json_encode($styles);
