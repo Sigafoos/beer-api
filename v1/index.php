@@ -40,20 +40,32 @@ $app->options('/(:x+)', function() use ($app) {
    */
 function get_beers($where = NULL) {
 	global $db, $dbprefix;
-	$query = "SELECT " . $dbprefix . "beers.id, beer, abv, " . $dbprefix . "beer_styles.style, description FROM " . $dbprefix . "beers INNER JOIN " . $dbprefix . "beer_styles ON " . $dbprefix . "beers.style=" . $dbprefix . "beer_styles.id " . $where;
+	$query = "SELECT " . $dbprefix . "beers.id, beer, abv, " . $dbprefix . "beer_styles.id AS styleid, " . $dbprefix . "beer_styles.style, description, " . $dbprefix . "beers.active FROM " . $dbprefix . "beers INNER JOIN " . $dbprefix . "beer_styles ON " . $dbprefix . "beers.style=" . $dbprefix . "beer_styles.id " . $where . " ORDER BY " . $dbprefix . "beers.id";
 	if (!($result = $db->query($query))) {
 		echo "error";
 		echo $query;
 		// some form of error
 	}
 	$beers = array();
-	while ($row = $result->fetch_assoc()) $beers[] = $row;
+	while ($beer = $result->fetch_assoc()) {
+		$beers[] = array(
+				"id"		=> $beer['id'],
+				"beer"		=> $beer['beer'],
+				"abv"		=> $beer['abv'],
+				"style"		=> array(
+					"id"		=> $beer['styleid'],
+					"style"		=> $beer['style']
+					),
+				"description"	=> $beer['description'],
+				"active"	=> $beer['active']
+				);
+	}
 	return $beers;
 }
 
 function get_taps($where = NULL) {
 	global $db, $dbprefix;
-	$query = "SELECT " . $dbprefix . "taps.id AS tapid, " . $dbprefix . "taps.tap, " . $dbprefix . "taps.description AS tapdescription, " . $dbprefix . "beers.id, " . $dbprefix . "beers.beer, abv, " . $dbprefix . "beer_styles.style, " . $dbprefix . "beers.description FROM " . $dbprefix . "taps LEFT OUTER JOIN " . $dbprefix . "beers ON " . $dbprefix . "taps.beer=" . $dbprefix . "beers.id LEFT OUTER JOIN " . $dbprefix . "beer_styles ON " . $dbprefix . "beers.style=" . $dbprefix . "beer_styles.id " . $where . " ORDER BY " . $dbprefix . "taps.id";
+	$query = "SELECT " . $dbprefix . "taps.id AS tapid, " . $dbprefix . "taps.tap, " . $dbprefix . "taps.description AS tapdescription, " . $dbprefix . "beers.id, " . $dbprefix . "beers.beer, abv, " . $dbprefix . "beer_styles.id AS styleid, " . $dbprefix . "beer_styles.style, " . $dbprefix . "beers.description, " . $dbprefix . "beers.active FROM " . $dbprefix . "taps LEFT OUTER JOIN " . $dbprefix . "beers ON " . $dbprefix . "taps.beer=" . $dbprefix . "beers.id LEFT OUTER JOIN " . $dbprefix . "beer_styles ON " . $dbprefix . "beers.style=" . $dbprefix . "beer_styles.id " . $where . " ORDER BY " . $dbprefix . "taps.id";
 	if (!($result = $db->query($query))) {
 		echo "error";
 		echo $query;
@@ -69,8 +81,12 @@ function get_taps($where = NULL) {
 					"id"		=> $tap['id'],
 					"beer"		=> $tap['beer'],
 					"abv"		=> $tap['abv'],
-					"style"		=> $tap['style'],
-					"description"	=> $tap['description']
+					"style"		=> array(
+						"id"		=> $tap['styleid'],
+						"style"		=> $tap['style']
+						),
+					"description"	=> $tap['description'],
+					"active"	=> $tap['active']
 					)
 			       );
 	}
@@ -120,14 +136,27 @@ $app->group('/beers', function() use ($app) {
 
 			$params = json_decode($app->request->getBody());
 
-			// doesn't support changing style
-			$query = "UPDATE " . $dbprefix . "beers SET beer='" . addslashes($params->beer) . ", abv='" . addslashes($params->abv) . "', description=";
-			$query .= ($params->description) ? "'" . addslashes($params->description) . "'" : "NULL";
-			$query .= " WHERE id=" . $id;
+			$beer = array(
+				"id"		=> $id,
+				"beer"		=> addslashes($params->beer),
+				"abv"		=> addslashes($params->abv),
+				"style"		=> array(
+					"id"		=> $params->style->id,
+					"style"		=> $params->style->style
+					),
+				"description"	=> $params->description
+				);
+
+			$query = "UPDATE " . $dbprefix . "beers SET beer='" . $beer['beer'] . "', abv='" . $beer['abv'] . "', style=" . $beer['style']['id'] . ", description=";
+			$query .= ($params->description) ? "'" . $beer['description'] . "'" : "NULL";
+			$query .= " WHERE id=" . $beer['id'];
+			echo json_encode(array("query"=>$query));
 			if (!($result = $db->query($query))) {
+				echo json_encode(array("error"=>"yep",$db->errno => $db->error));
 				$app->status(500);
 				$app->stop();
 			}
+			echo json_encode($beer);
 			});
 		});
 
@@ -198,6 +227,41 @@ $app->group('/styles', function() use ($app) {
 			$beers = get_beers("WHERE " . $dbprefix . "beer_styles.id=" . $id);
 			echo json_encode($beers);
 			});
+
+		$app->post('',function() {
+			global $db, $dbprefix;
+			$key = $app->request->headers->get('apikey');
+			if (!$key) {
+				$app->status(400);
+				$app->stop();
+			}
+			$query = "SELECT user FROM " . $dbprefix . "apikeys WHERE apikey='" . addslashes($key) . "'";
+			if (!($result = $db->query($query))) {
+				$app->status(500);
+				$app->stop();
+			} else if (!$result->fetch_assoc()) {
+				$app->status(400);
+				$app->stop();
+			}
+
+			$params = json_decode($app->request->getBody());
+			echo json_encode(array("something"=>"okay?"));
+			/*
+			$query = "INSERT INTO " . $dbprefix . "beer_styles(style) VALUES('" . addslashes($params->style) . "')";
+			if (!$db->query($query)) {
+			$app->status(500);
+			$app->stop();
+			}
+
+			$id = mysql_insert_id($db);
+			if (!$id) {
+				$app->status(500);
+				$app->stop();
+			}
+
+			echo json_encode(array("id"=>$id, "style"=>$params->style));
+			*/
+				});
 		});
 
 $app->run();
