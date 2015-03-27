@@ -144,12 +144,13 @@ $app->group('/beers', function() use ($app) {
 					"id"		=> $params->style->id,
 					"style"		=> $params->style->style
 					),
-				"description"	=> $params->description
+				"description"	=> $params->description,
+				"active"	=> $params->active
 				);
 
 			$query = "UPDATE " . $dbprefix . "beers SET beer='" . $beer['beer'] . "', abv='" . $beer['abv'] . "', style=" . $beer['style']['id'] . ", description=";
-			$query .= ($params->description) ? "'" . $beer['description'] . "'" : "NULL";
-			$query .= " WHERE id=" . $beer['id'];
+			$query .= ($beer['description']) ? "'" . $beer['description'] . "'" : "NULL";
+			$query .= ", active=" . $beer['active'] . " WHERE id=" . $beer['id'];
 			echo json_encode(array("query"=>$query));
 			if (!($result = $db->query($query))) {
 				echo json_encode(array("error"=>"yep",$db->errno => $db->error));
