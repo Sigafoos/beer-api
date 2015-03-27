@@ -271,7 +271,7 @@ $app->group('/styles', function() use ($app) {
 			echo json_encode($beers);
 			});
 
-		$app->post('',function() {
+		$app->post('',function() use ($app) {
 			global $db, $dbprefix;
 			$key = $app->request->headers->get('apikey');
 			if (!$key) {
@@ -288,22 +288,19 @@ $app->group('/styles', function() use ($app) {
 			}
 
 			$params = json_decode($app->request->getBody());
-			echo json_encode(array("params"=>$params));
-			/*
 			$query = "INSERT INTO " . $dbprefix . "beer_styles(style) VALUES('" . addslashes($params->style) . "')";
 			if (!$db->query($query)) {
 			$app->status(500);
 			$app->stop();
 			}
 
-			$id = mysql_insert_id($db);
+			$id = $db->insert_id;
 			if (!$id) {
 				$app->status(500);
 				$app->stop();
 			}
 
 			echo json_encode(array("id"=>$id, "style"=>$params->style));
-			*/
 				});
 		});
 
