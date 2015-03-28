@@ -17,7 +17,7 @@ if (!($result = $db->query($query))) die("Fatal error creating table " . $dbpref
 echo "Style table created.\n";
 
 // tap list (the physical places you can have them and what they contain)
-$query = "CREATE TABLE IF NOT EXISTS " . $dbprefix . "taps (id int auto_increment primary key, tap varchar(100) not null, beer int default null, description varchar(500) default null)";
+$query = "CREATE TABLE IF NOT EXISTS " . $dbprefix . "taps (id int auto_increment primary key, tap varchar(100) not null, beer int default null, description varchar(500) default null, sort_order int not null default 3)";
 if (!($result = $db->query($query))) die("Fatal error creating table " . $dbprefix . "taps: #" . $db->errno . ": " . $db->error);
 echo "Tap table created.\n";
 
