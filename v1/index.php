@@ -95,18 +95,24 @@ function get_taps($where = NULL) {
 	return $taps;
 }
 
+// how do you want it returned?
+if ($app->request->get('format') == "object") $format = JSON_FORCE_OBJECT;
+else $format = NULL;
+
 // dealing with list of beers we have made
 $app->group('/beers', function() use ($app) {
 		// all active and non-archived beers
 		$app->get('', function() {
+			global $format;
 			$beers = get_beers("WHERE active=1");
-			echo json_encode($beers, JSON_FORCE_OBJECT);
+			echo json_encode($beers, $format);
 			});
 
 		// all beers, including archived
 		$app->get('/all', function() {
+			global $format;
 			$beers = get_beers();
-			echo json_encode($beers, JSON_FORCE_OBJECT);
+			echo json_encode($beers, $format);
 			});
 
 		// detail of specific beer
@@ -115,13 +121,13 @@ $app->group('/beers', function() use ($app) {
 				$app->status(400);
 				$app->stop();
 				}
-			global $dbprefix;
+			global $dbprefix, $format;
 			$beers = get_beers("WHERE " . $dbprefix . "beers.id=" . $id);
-			echo json_encode($beers, JSON_FORCE_OBJECT);
+			echo json_encode($beers, $format);
 			});
 
 		$app->put('/:id', function($id) use($app) {
-			global $db, $dbprefix;
+			global $db, $dbprefix, $format;
 			$key = $app->request->headers->get('apikey');
 			if (!$key) {
 				$app->status(400);
@@ -157,11 +163,11 @@ $app->group('/beers', function() use ($app) {
 				$app->status(500);
 				$app->stop();
 			}
-			echo json_encode($beer, JSON_FORCE_OBJECT);
+			echo json_encode($beer, $format);
 			});
 
 		$app->post('',function() use ($app) {
-			global $db, $dbprefix;
+			global $db, $dbprefix, $format;
 			$key = $app->request->headers->get('apikey');
 			if (!$key) {
 				$app->status(400);
@@ -199,7 +205,7 @@ $app->group('/beers', function() use ($app) {
 				$app->stop();
 			}
 			$beer['id'] = $id;
-			echo json_encode($beer, JSON_FORCE_OBJECT);
+			echo json_encode($beer, $format);
 				});
 		});
 
@@ -207,20 +213,21 @@ $app->group('/beers', function() use ($app) {
 $app->group('/taps', function() use ($app) {
 		// what's currently on tap
 		$app->get('', function() {
+			global $format;
 			$taps = get_taps();
-			echo json_encode($taps, JSON_FORCE_OBJECT);
+			echo json_encode($taps, $format);
 			});
 
 		// what's on a specific tap
 		$app->get('/:id', function($id) {
-			global $dbprefix;
+			global $dbprefix, $format;
 			$taps = get_taps("WHERE " . $dbprefix . "taps.id=" . $id);
-			echo json_encode($taps, JSON_FORCE_OBJECT);
+			echo json_encode($taps, $format);
 			});
 
 		// right now you can ONLY change the beer
 		$app->put('/:id', function($id) use($app) {
-			global $db, $dbprefix;
+			global $db, $dbprefix, $format;
 			$key = $app->request->headers->get('apikey');
 			if (!$key) {
 				$app->status(400);
@@ -251,7 +258,7 @@ $app->group('/taps', function() use ($app) {
 $app->group('/styles', function() use ($app) {
 		// style list
 		$app->get('', function() {
-			global $db, $dbprefix;
+			global $db, $dbprefix, $format;
 			$query = "SELECT id, style FROM " . $dbprefix . "beer_styles ORDER BY id";
 			if (!($result = $db->query($query))) {
 			echo "error";
@@ -263,18 +270,18 @@ $app->group('/styles', function() use ($app) {
 				"id"		=> $row['id'],
 				"style"		=> stripslashes($row['style'])
 				);
-			echo json_encode($styles, JSON_FORCE_OBJECT);
+			echo json_encode($styles, $format);
 			});
 
 		// all beers with a style
 		$app->get('/:id', function($id) {
-			global $dbprefix;
+			global $dbprefix, $format;
 			$beers = get_beers("WHERE " . $dbprefix . "beer_styles.id=" . $id);
-			echo json_encode($beers, JSON_FORCE_OBJECT);
+			echo json_encode($beers, $format);
 			});
 
 		$app->post('',function() use ($app) {
-			global $db, $dbprefix;
+			global $db, $dbprefix, $format;
 			$key = $app->request->headers->get('apikey');
 			if (!$key) {
 				$app->status(400);
@@ -302,7 +309,7 @@ $app->group('/styles', function() use ($app) {
 				$app->stop();
 			}
 
-			echo json_encode(array("id"=>$id, "style"=>$params->style), JSON_FORCE_OBJECT);
+			echo json_encode(array("id"=>$id, "style"=>$params->style), $format);
 				});
 		});
 
