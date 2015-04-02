@@ -41,6 +41,7 @@ $app->options('/(:x+)', function() use ($app) {
 function get_beers($where = NULL) {
 	global $db, $dbprefix;
 	$query = "SELECT " . $dbprefix . "beers.id, beer, abv, " . $dbprefix . "beer_styles.id AS styleid, " . $dbprefix . "beer_styles.style, description, " . $dbprefix . "beers.active FROM " . $dbprefix . "beers INNER JOIN " . $dbprefix . "beer_styles ON " . $dbprefix . "beers.style=" . $dbprefix . "beer_styles.id " . $where . " ORDER BY " . $dbprefix . "beers.id";
+
 	if (!($result = $db->query($query))) {
 		echo "error";
 		echo $query;
@@ -99,13 +100,13 @@ $app->group('/beers', function() use ($app) {
 		// all active and non-archived beers
 		$app->get('', function() {
 			$beers = get_beers("WHERE active=1");
-			echo json_encode($beers);
+			echo json_encode($beers, JSON_FORCE_OBJECT);
 			});
 
 		// all beers, including archived
 		$app->get('/all', function() {
 			$beers = get_beers();
-			echo json_encode($beers);
+			echo json_encode($beers, JSON_FORCE_OBJECT);
 			});
 
 		// detail of specific beer
@@ -116,7 +117,7 @@ $app->group('/beers', function() use ($app) {
 				}
 			global $dbprefix;
 			$beers = get_beers("WHERE " . $dbprefix . "beers.id=" . $id);
-			echo json_encode($beers);
+			echo json_encode($beers, JSON_FORCE_OBJECT);
 			});
 
 		$app->put('/:id', function($id) use($app) {
@@ -152,13 +153,11 @@ $app->group('/beers', function() use ($app) {
 			$query = "UPDATE " . $dbprefix . "beers SET beer='" . $beer['beer'] . "', abv='" . $beer['abv'] . "', style=" . $beer['style']['id'] . ", description=";
 			$query .= ($beer['description']) ? "'" . $beer['description'] . "'" : "NULL";
 			$query .= ", active=" . $beer['active'] . " WHERE id=" . $beer['id'];
-			echo json_encode(array("query"=>$query));
 			if (!($result = $db->query($query))) {
-				echo json_encode(array("error"=>"yep",$db->errno => $db->error));
 				$app->status(500);
 				$app->stop();
 			}
-			echo json_encode($beer);
+			echo json_encode($beer, JSON_FORCE_OBJECT);
 			});
 
 		$app->post('',function() use ($app) {
@@ -189,7 +188,6 @@ $app->group('/beers', function() use ($app) {
 			$query = "INSERT INTO " . $dbprefix . "beers(beer, abv, style, description, active) VALUES('" . $beer['beer'] . "', '" . $beer['abv'] . "', " . $beer['style'] . ",";
 			$query .= ($beer['description']) ? "'" . $beer['description'] . "'" : "NULL";
 			$query .= ", " . $beer['active'] . ")";
-			echo json_encode(array("query"=>$query));
 			if (!$db->query($query)) {
 			$app->status(500);
 			$app->stop();
@@ -201,7 +199,7 @@ $app->group('/beers', function() use ($app) {
 				$app->stop();
 			}
 			$beer['id'] = $id;
-			echo json_encode($beer);
+			echo json_encode($beer, JSON_FORCE_OBJECT);
 				});
 		});
 
@@ -210,14 +208,14 @@ $app->group('/taps', function() use ($app) {
 		// what's currently on tap
 		$app->get('', function() {
 			$taps = get_taps();
-			echo json_encode($taps);
+			echo json_encode($taps, JSON_FORCE_OBJECT);
 			});
 
 		// what's on a specific tap
 		$app->get('/:id', function($id) {
 			global $dbprefix;
 			$taps = get_taps("WHERE " . $dbprefix . "taps.id=" . $id);
-			echo json_encode($taps);
+			echo json_encode($taps, JSON_FORCE_OBJECT);
 			});
 
 		// right now you can ONLY change the beer
@@ -246,7 +244,6 @@ $app->group('/taps', function() use ($app) {
 				$app->status(500);
 				$app->stop();
 			}
-			//echo json_encode(array("status"=>"success"));
 			});
 		});
 
@@ -266,14 +263,14 @@ $app->group('/styles', function() use ($app) {
 				"id"		=> $row['id'],
 				"style"		=> stripslashes($row['style'])
 				);
-			echo json_encode($styles);
+			echo json_encode($styles, JSON_FORCE_OBJECT);
 			});
 
 		// all beers with a style
 		$app->get('/:id', function($id) {
 			global $dbprefix;
 			$beers = get_beers("WHERE " . $dbprefix . "beer_styles.id=" . $id);
-			echo json_encode($beers);
+			echo json_encode($beers, JSON_FORCE_OBJECT);
 			});
 
 		$app->post('',function() use ($app) {
@@ -305,7 +302,7 @@ $app->group('/styles', function() use ($app) {
 				$app->stop();
 			}
 
-			echo json_encode(array("id"=>$id, "style"=>$params->style));
+			echo json_encode(array("id"=>$id, "style"=>$params->style), JSON_FORCE_OBJECT);
 				});
 		});
 
