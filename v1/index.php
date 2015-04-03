@@ -99,6 +99,7 @@ function get_taps($where = NULL) {
 if ($app->request->get('format') == "object") $format = JSON_FORCE_OBJECT;
 else $format = NULL;
 
+
 // dealing with list of beers we have made
 $app->group('/beers', function() use ($app) {
 		// all active and non-archived beers
