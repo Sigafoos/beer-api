@@ -30,7 +30,7 @@ $app->configureMode('production', function () use ($app)
 		));
 	});
 
-// catch-all OPTIONS 
+// catch-all OPTIONS
 $app->options('/(:x+)', function() use ($app)
 	{
 		//$app->response->headers->set('Access-Control-Allow-Origin', '*');
@@ -38,7 +38,7 @@ $app->options('/(:x+)', function() use ($app)
 		//$app->response->headers->set('Access-Control-Allow-Headers', 'apikey');
 		$app->response->setStatus(200);
 	});
-/* 
+/*
    API functions
  */
 function get_beers($where = NULL)
@@ -118,7 +118,7 @@ $app->group('/beers', function() use ($app)
 	global $format;
 	$req = $app->request();
 	$where = ($req->get('view') == 'all') ? null : ' WHERE active=1';
-	//$where = 
+	//$where =
 	$beers = get_beers($where);
 	echo json_encode($beers, $format);
 });
