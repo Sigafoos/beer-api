@@ -38,11 +38,14 @@ $app->options('/(:x+)', function() use ($app)
 	//$app->response->headers->set('Access-Control-Allow-Headers', 'apikey');
 	$app->response->setStatus(200);
 	});
-/*
-   API functions
- */
+//
+// how do you want it returned?
+if ($app->request->get('format') == "object") $format = JSON_FORCE_OBJECT;
+else $format = NULL;
 
-require 'beerlist.php';
+/*** individual groups ***/
+require 'beers.php';
+require 'taps.php';
 
 $app->run();
 
