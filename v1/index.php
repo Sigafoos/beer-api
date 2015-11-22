@@ -289,6 +289,35 @@ $app->group('/taps', function() use ($app)
 					$app->stop();
 				}
 			});
+
+// for Slackbot
+$app->post('', function() use($app)
+{				global $format;
+				$taps = get_taps();
+$tapped = '';
+foreach ($taps as $tap)
+{
+if (!is_null($tap['beer']['id']))
+{
+$tapped .= 'Tap ' . $tap['tap'] . ': ' . $tap['beer']['beer'] . ' (' . $tap['beer']['style']['style'] . ', ' . $tap['beer']['abv'] . '%)
+';
+}
+}
+
+$data = [
+'channel' => '#beer',
+'username' => 'ontapbot',
+'text' => $tapped,
+'icon_emoji' => ':cbw:',
+];
+
+$ch = curl_init('https://hooks.slack.com/services/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');
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, ['payload' => json_encode($data)]);
+curl_exec($ch);
+
+});
+
 			});
 
 // style-specific information
