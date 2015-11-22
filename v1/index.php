@@ -15,99 +15,33 @@ $app->response->headers->set("Access-Control-Allow-Headers", "apikey, Content-Ty
 // if it's development
 $app->configureMode('development', function () use ($app)
 	{
-		$app->config(array(
-			'log.enable'	=> false,
-			'debug'		=> true
-		));
+	$app->config(array(
+		'log.enable'	=> false,
+		'debug'		=> true
+	));
 	});
 
 // or production
 $app->configureMode('production', function () use ($app)
 	{
-		$app->config(array(
-			'log.enable'	=> true,
-			'debug'		=> false
-		));
+	$app->config(array(
+		'log.enable'	=> true,
+		'debug'		=> false
+	));
 	});
 
-// catch-all OPTIONS 
+// catch-all OPTIONS
 $app->options('/(:x+)', function() use ($app)
 	{
-		//$app->response->headers->set('Access-Control-Allow-Origin', '*');
-		//$app->response->headers->set("Access-Control-Allow-Methods: GET, POST, PUT, OPTIONS");
-		//$app->response->headers->set('Access-Control-Allow-Headers', 'apikey');
-		$app->response->setStatus(200);
+	//$app->response->headers->set('Access-Control-Allow-Origin', '*');
+	//$app->response->headers->set("Access-Control-Allow-Methods: GET, POST, PUT, OPTIONS");
+	//$app->response->headers->set('Access-Control-Allow-Headers', 'apikey');
+	$app->response->setStatus(200);
 	});
-/* 
-   API functions
- */
-function get_beers($where = NULL)
-{
-	global $db, $dbprefix;
-	$query = "SELECT " . $dbprefix . "beers.id, beer, abv, " . $dbprefix . "beer_styles.id AS styleid, " . $dbprefix . "beer_styles.style, description, " . $dbprefix . "beers.active FROM " . $dbprefix . "beers INNER JOIN " . $dbprefix . "beer_styles ON " . $dbprefix . "beers.style=" . $dbprefix . "beer_styles.id " . $where . " ORDER BY " . $dbprefix . "beers.id";
-
-	if (!($result = $db->query($query)))
-	{
-		echo "error";
-		echo $query;
-		// some form of error
-	}
-	$beers = array();
-	while ($beer = $result->fetch_assoc())
-	{
-		$beers[] = array(
-			"id"		=> $beer['id'],
-			"beer"		=> stripslashes($beer['beer']),
-			"abv"		=> stripslashes($beer['abv']),
-			"style"		=> array(
-				"id"		=> $beer['styleid'],
-				"style"		=> stripslashes($beer['style'])
-			),
-			"description"	=> stripslashes($beer['description']),
-			"active"	=> $beer['active']
-		);
-	}
-	return $beers;
-}
-
-function get_taps($where = NULL)
-{
-	global $db, $dbprefix;
-	$query = "SELECT " . $dbprefix . "taps.id AS tapid, " . $dbprefix . "taps.tap, " . $dbprefix . "taps.description AS tapdescription, " . $dbprefix . "beers.id, " . $dbprefix . "beers.beer, abv, " . $dbprefix . "beer_styles.id AS styleid, " . $dbprefix . "beer_styles.style, " . $dbprefix . "beers.description, " . $dbprefix . "beers.active, sort_order FROM " . $dbprefix . "taps LEFT OUTER JOIN " . $dbprefix . "beers ON " . $dbprefix . "taps.beer=" . $dbprefix . "beers.id LEFT OUTER JOIN " . $dbprefix . "beer_styles ON " . $dbprefix . "beers.style=" . $dbprefix . "beer_styles.id " . $where . " ORDER BY sort_order ASC, " . $dbprefix . "taps.id";
-	if (!($result = $db->query($query)))
-	{
-		echo "error";
-		echo $query;
-		// some form of error
-	}
-	$taps = array();
-	while ($tap = $result->fetch_assoc())
-	{
-		$taps[] = array(
-			"id"		=> $tap['tapid'],
-			"tap"		=> stripslashes($tap['tap']),
-			"description"	=> stripslashes($tap['tapdescription']),
-			"beer"		=> array(
-				"id"		=> $tap['id'],
-				"beer"		=> stripslashes($tap['beer']),
-				"abv"		=> stripslashes($tap['abv']),
-				"style"		=> array(
-					"id"		=> $tap['styleid'],
-					"style"		=> stripslashes($tap['style'])
-				),
-				"description"	=> stripslashes($tap['description']),
-				"active"	=> $tap['active']
-			),
-			"sort_order"		=> $tap['sort_order']
-		);
-	}
-	return $taps;
-}
-
+//
 // how do you want it returned?
 if ($app->request->get('format') == "object") $format = JSON_FORCE_OBJECT;
 else $format = NULL;
-
 
 // dealing with list of beers we have made
 $app->group('/beers', function() use ($app)
@@ -388,6 +322,9 @@ $app->group('/styles', function() use ($app)
 						echo json_encode(array("id"=>$id, "style"=>$params->style), $format);
 					});
 				});
+/*** individual groups ***/
+require 'beers.php';
+require 'taps.php';
 
 $app->run();
 
